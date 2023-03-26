@@ -2,10 +2,10 @@
 import os
 import re
 import sys
+import gzip
 import json
 import subprocess
 
-logfile = "/var/log/lfd.log"
 mmdblookup_bin = "/usr/local/nginx-dep/bin/mmdblookup"
 asn_database = "/usr/share/GeoIP/GeoLite2-ASN.mmdb"
 debug = False
@@ -57,14 +57,21 @@ def process_line(line: str) -> dict:
     return json_obj
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        logfile = sys.argv[1]
+    else:
+        logfile = "/var/log/lfd.log"
+
     if not os.path.isfile(mmdblookup_bin) or not os.path.isfile(asn_database):
         print("mmdblookup binary or ASN database not found. Exiting.")
         sys.exit(1)
 
     if os.path.isfile(logfile):
-        with open(logfile, 'r') as f:
+        file_opener = gzip.open if logfile.endswith('.gz') else open
+        with file_opener(logfile, 'rt') as f:
             lines = [l.strip().split() for l in f.readlines() if 'Blocked in csf' in l or 'SSH login' in l]
         output = [process_line(line) for line in lines]
         print(json.dumps(output, indent=2))
     else:
         print(f"Log file {logfile} not found.")
+
