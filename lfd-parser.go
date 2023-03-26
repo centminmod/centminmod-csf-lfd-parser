@@ -26,6 +26,9 @@ type LogEntry struct {
 func main() {
   // Set up command line flag
   logFilePath := flag.String("p", "/var/log/lfd.log", "Path to the log file")
+  ipFilter := flag.String("ip", "", "Filter by IP address")
+  asnFilter := flag.Uint("asn", 0, "Filter by ASN number")
+  infoFilter := flag.String("info", "", "Filter by Info")
   flag.Parse()
 
   // Open the log file
@@ -66,7 +69,12 @@ func main() {
 
     if strings.Contains(line, "Blocked in csf") || strings.Contains(line, "SSH login") {
       entry := processLine(line, asnDB)
-      entries = append(entries, entry)
+
+      if (*ipFilter == "" || entry.IP == *ipFilter) &&
+        (*asnFilter == 0 || entry.ASNNumber == *asnFilter) &&
+        (*infoFilter == "" || entry.Info == *infoFilter) {
+        entries = append(entries, entry)
+      }
     }
   }
 

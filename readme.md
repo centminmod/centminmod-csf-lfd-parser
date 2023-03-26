@@ -4,7 +4,7 @@ Three versions - shell script, Python and Golang versions:
 
 * [`lfd-parser.sh`](#shell-script-version) - requires both MaxMind GeoLite2 ASN database at `/usr/share/GeoIP/GeoLite2-ASN.mmdb` and `/usr/local/nginx-dep/bin/mmdblookup` be available.
 * [`lfd-parser.py`](#python-version) - requires both MaxMind GeoLite2 ASN database at `/usr/share/GeoIP/GeoLite2-ASN.mmdb` and `/usr/local/nginx-dep/bin/mmdblookup` be available.
-* [`lfd-parser.go`](#golang-version) - requires only that MaxMind GeoLite2 ASN database at `/usr/share/GeoIP/GeoLite2-ASN.mmdb` be available as it uses `geoip2-golang` instead of `mmdblookup`.
+* [`lfd-parser.go`](#golang-version) - requires only that MaxMind GeoLite2 ASN database at `/usr/share/GeoIP/GeoLite2-ASN.mmdb` be available as it uses `geoip2-golang` instead of `mmdblookup`. Supports [filtering](#filtering) options for `--ip`, `--asn` and `--info`.
 
 All tree versions parses the CSF LFD `lfd.log` log for timestamp, IP address and type but additionally does an optional IP ASN number/organization lookup if it detects local MaxMind GeoLite2 ASN database being installed. The local MaxMind GeoLite 2 ASN database will be installed and available when Centmin Mod persistent config `/etc/centminmod/custom_config.inc` set with `NGINX_GEOIPTWOLITE='y'` before Nginx install or Nginx recompiles (centmin.sh menu option 4). The local MaxMind GeoLite 2 ASN database will automatically update over time.
 
@@ -160,7 +160,7 @@ go build -ldflags="-s -w" -o lfd-parser lfd-parser.go
 Then you can run `lfd-parser`
 
 ```
-time ./lfd-parser /var/log/lfd.log
+time ./lfd-parser --p /var/log/lfd.log
 [
   {
     "timestamp": "Mar 26 04:35:32",
@@ -224,7 +224,7 @@ real    1m29.289s
 user    2m40.106s
 sys     0m12.970s
 
-time ./lfd-parser /var/log/lfd.log-20230326.gz > parsed-golang.log
+time ./lfd-parser --p /var/log/lfd.log-20230326.gz > parsed-golang.log
 
 real    0m0.022s
 user    0m0.021s
@@ -240,7 +240,7 @@ real: 1.13s user: 0.48s sys: 0.78s cpu: 112% maxmem: 14520 KB cswaits: 3434
 
 real: 86.57s user: 159.33s sys: 11.05s cpu: 196% maxmem: 18120 KB cswaits: 66934
 
-/usr/bin/time --format='real: %es user: %Us sys: %Ss cpu: %P maxmem: %M KB cswaits: %w' ./lfd-parser /var/log/lfd.log-20230326.gz > parsed-golang.log
+/usr/bin/time --format='real: %es user: %Us sys: %Ss cpu: %P maxmem: %M KB cswaits: %w' ./lfd-parser --p /var/log/lfd.log-20230326.gz > parsed-golang.log
 
 real: 0.03s user: 0.03s sys: 0.00s cpu: 105% maxmem: 15256 KB cswaits: 114
 ```
@@ -256,4 +256,85 @@ cat parsed-golang.log | jq -r '.[] | "\(.ip) \(.asn_number) \(.asn_org) \(.info)
       1 95.152.60.98 12389 Rostelecom LF_DISTATTACK
       1 95.106.174.126 12389 Rostelecom LF_SSHD
       1 94.153.212.78 15895 Kyivstar PJSC LF_SSHD
+```
+
+## Filtering
+
+The Golang version `lfd-parser` also supports filtering by:
+
+* `--ip` - filter by IP Address
+* `--asn` - filter by ASN Number
+* `--info` - filter by info field i.e. `LF_SSHD`, `LF_DISTATTACK`
+
+```
+./lfd-parser --p /var/log/lfd.log-20230326.gz --ip 117.132.192.31
+[
+  {
+    "timestamp": "Mar 26 02:44:29",
+    "ip": "117.132.192.31",
+    "type": "Blocked in csf",
+    "asn_number": 9808,
+    "asn_org": "China Mobile Communications Group Co., Ltd.",
+    "info": "LF_SSHD"
+  },
+  {
+    "timestamp": "Mar 26 02:44:29",
+    "ip": "117.132.192.31",
+    "type": "Blocked in csf",
+    "asn_number": 9808,
+    "asn_org": "China Mobile Communications Group Co., Ltd.",
+    "info": "LF_DISTATTACK"
+  }
+]
+```
+```
+./lfd-parser --p /var/log/lfd.log-20230326.gz --asn 9808
+[
+  {
+    "timestamp": "Mar 22 04:11:58",
+    "ip": "120.210.206.146",
+    "type": "Blocked in csf",
+    "asn_number": 9808,
+    "asn_org": "China Mobile Communications Group Co., Ltd.",
+    "info": "LF_DISTATTACK"
+  },
+  {
+    "timestamp": "Mar 26 02:44:29",
+    "ip": "117.132.192.31",
+    "type": "Blocked in csf",
+    "asn_number": 9808,
+    "asn_org": "China Mobile Communications Group Co., Ltd.",
+    "info": "LF_SSHD"
+  },
+  {
+    "timestamp": "Mar 26 02:44:29",
+    "ip": "117.132.192.31",
+    "type": "Blocked in csf",
+    "asn_number": 9808,
+    "asn_org": "China Mobile Communications Group Co., Ltd.",
+    "info": "LF_DISTATTACK"
+  }
+]
+
+```
+```
+./lfd-parser --p /var/log/lfd.log-20230326.gz --info LF_DISTATTACK
+[
+  {
+    "timestamp": "Mar 26 02:35:49",
+    "ip": "2.59.62.229",
+    "type": "Blocked in csf",
+    "asn_number": 63023,
+    "asn_org": "AS-GLOBALTELEHOST",
+    "info": "LF_DISTATTACK"
+  },
+  {
+    "timestamp": "Mar 26 02:44:29",
+    "ip": "117.132.192.31",
+    "type": "Blocked in csf",
+    "asn_number": 9808,
+    "asn_org": "China Mobile Communications Group Co., Ltd.",
+    "info": "LF_DISTATTACK"
+  }
+]
 ```
