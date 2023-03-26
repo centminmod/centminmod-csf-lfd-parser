@@ -21,6 +21,12 @@ if ! command -v parallel >/dev/null 2>&1; then
   yum install -y parallel
 fi
 
+if [ "$#" -gt 0 ]; then
+  logfile="$1"
+else
+  logfile="/var/log/lfd.log"
+fi
+
 function process_line() {
   line="$1"
   timestamp=$(echo "$line" | jq -r '.timestamp')
@@ -42,7 +48,7 @@ function process_line() {
 export -f process_line
 
 if [ -x "${mmdblookup_bin}" ] && [ -e "${asn_database}" ]; then
-  json1=$(grep -E 'Blocked in csf|SSH login' "$logfile" | awk 'BEGIN { print "[" } {
+  json1=$(zcat -f "$logfile" | grep -E 'Blocked in csf|SSH login' | awk 'BEGIN { print "[" } {
     month = $1;
     date = $2;
     time = $3;
@@ -68,7 +74,7 @@ if [ -x "${mmdblookup_bin}" ] && [ -e "${asn_database}" ]; then
   # Output the final JSON array
   echo "$output"
 else
-  grep -E 'Blocked in csf|SSH login' "$logfile" | awk 'BEGIN { print "[" } {
+  zcat -f "$logfile" | grep -E 'Blocked in csf|SSH login' | awk 'BEGIN { print "[" } {
     month = $1;
     date = $2;
     time = $3;
