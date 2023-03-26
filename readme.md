@@ -1,6 +1,6 @@
 Centmin Mod CSF LFD Log Parser
 
-Two versions a shell script, Python and Golang versions:
+Three versions - shell script, Python and Golang versions:
 
 * [`lfd-parser.sh`](#shell-script-version)
 * [`lfd-parser.py`](#python-version)
