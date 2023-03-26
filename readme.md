@@ -155,7 +155,7 @@ go install github.com/oschwald/geoip2-golang@latest
 go mod init lfd-parser
 go get github.com/oschwald/geoip2-golang
 # build it
-go build -o lfd-parser lfd-parser.go
+go build -ldflags="-s -w" -o lfd-parser lfd-parser.go
 ```
 Then you can run `lfd-parser`
 
@@ -229,6 +229,20 @@ time ./lfd-parser /var/log/lfd.log-20230326.gz > parsed-golang.log
 real    0m0.022s
 user    0m0.021s
 sys     0m0.002s
+```
+
+```
+/usr/bin/time --format='real: %es user: %Us sys: %Ss cpu: %P maxmem: %M KB cswaits: %w' python3 lfd-parser.py /var/log/lfd.log-20230326.gz > parsed-python.log
+
+real: 1.13s user: 0.48s sys: 0.78s cpu: 112% maxmem: 14520 KB cswaits: 3434
+
+/usr/bin/time --format='real: %es user: %Us sys: %Ss cpu: %P maxmem: %M KB cswaits: %w' ./lfd-parser.sh /var/log/lfd.log-20230326.gz > parsed.log
+
+real: 86.57s user: 159.33s sys: 11.05s cpu: 196% maxmem: 18120 KB cswaits: 66934
+
+/usr/bin/time --format='real: %es user: %Us sys: %Ss cpu: %P maxmem: %M KB cswaits: %w' ./lfd-parser /var/log/lfd.log-20230326.gz > parsed-golang.log
+
+real: 0.03s user: 0.03s sys: 0.00s cpu: 105% maxmem: 15256 KB cswaits: 114
 ```
 
 ```
