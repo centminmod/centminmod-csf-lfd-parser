@@ -1,6 +1,7 @@
 package main
 
 import (
+  "bufio"
   "compress/gzip"
   "encoding/json"
   "fmt"
@@ -10,7 +11,6 @@ import (
   "os"
   "regexp"
   "strings"
-  "bufio"
 )
 
 type LogEntry struct {
@@ -24,11 +24,10 @@ type LogEntry struct {
 
 func main() {
   // Read command line arguments
-  if len(os.Args) < 2 {
-    fmt.Println("Usage: go run lfd-parser.go <logfile>")
-    os.Exit(1)
+  logfile := "/var/log/lfd.log"
+  if len(os.Args) > 1 {
+    logfile = os.Args[1]
   }
-  logfile := os.Args[1]
 
   // Open the log file
   var reader io.Reader
