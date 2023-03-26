@@ -1,9 +1,10 @@
 Centmin Mod CSF LFD Log Parser
 
-Two versions a shell script and Python version
+Two versions a shell script, Python and Golang versions:
 
 * [`lfd-parser.sh`](#shell-script-version)
 * [`lfd-parser.py`](#python-version)
+* [`lfd-parser.go`](#golang-version)
 
 Parses the CSF LFD `lfd.log` log for timestamp, IP address and type but additional does an optional IP ASN number/organization lookup if it detects local MaxMind GeoLite2 ASN database being installed. The local MaxMind GeoLite 2 ASN database will be installed and available when Centmin Mod persistent config `/etc/centminmod/custom_config.inc` set with `NGINX_GEOIPTWOLITE='y'` before Nginx install or Nginx recompiles (centmin.sh menu option 4). The local MaxMind GeoLite 2 ASN database will automatically update over time.
 
@@ -129,6 +130,110 @@ cat parsed-python.log | jq -r '.[] | .ip' | sort | uniq -c | sort -rn | head -n1
 ```
 ```
 cat parsed-python.log | jq -r '.[] | "\(.ip) \(.asn_number) \(.asn_org) \(.info)"' | sort | uniq -c | sort -rn | head -n10
+      1 98.159.98.85 396073 MAJESTIC-HOSTING-01 LF_DISTATTACK
+      1 97.65.33.11 3549 LVLT-3549 LF_SSHD
+      1 95.85.27.201 14061 DIGITALOCEAN-ASN LF_SSHD
+      1 95.85.124.113 20661 State Company of Electro Communications Turkmentelecom LF_SSHD
+      1 95.232.253.35 3269 Telecom Italia LF_SSHD
+      1 95.152.60.98 12389 Rostelecom LF_DISTATTACK
+      1 95.106.174.126 12389 Rostelecom LF_SSHD
+      1 94.153.212.78 15895 Kyivstar PJSC LF_SSHD
+```
+
+# Golang Version
+
+Centmin Mod install GO via `addons/golang.sh` and then exist SSH session and relogin
+
+```
+/usr/local/src/centminmod/addons/golang.sh install
+```
+
+```
+mkdir lfd-parser
+cd lfd-parser
+go install github.com/oschwald/geoip2-golang@latest
+go mod init lfd-parser
+go get github.com/oschwald/geoip2-golang
+# build it
+go build -o lfd-parser lfd-parser.go
+```
+Then you can run `lfd-parser`
+
+```
+time ./lfd-parser /var/log/lfd.log
+[
+  {
+    "timestamp": "Mar 26 04:35:32",
+    "ip": "36.248.12.38",
+    "type": "Blocked in csf",
+    "asn_number": 4837,
+    "asn_org": "CHINA UNICOM China169 Backbone",
+    "info": "LF_SSHD"
+  },
+  {
+    "timestamp": "Mar 26 04:52:33",
+    "ip": "36.112.171.51",
+    "type": "Blocked in csf",
+    "asn_number": 4847,
+    "asn_org": "China Networks Inter-Exchange",
+    "info": "LF_DISTATTACK"
+  },
+  {
+    "timestamp": "Mar 26 05:24:13",
+    "ip": "54.37.196.181",
+    "type": "Blocked in csf",
+    "asn_number": 16276,
+    "asn_org": "OVH SAS",
+    "info": "LF_SSHD"
+  },
+  {
+    "timestamp": "Mar 26 05:27:54",
+    "ip": "210.114.1.46",
+    "type": "Blocked in csf",
+    "asn_number": 4766,
+    "asn_org": "Korea Telecom",
+    "info": "LF_SSHD"
+  },
+  {
+    "timestamp": "Mar 26 05:30:14",
+    "ip": "155.248.233.18",
+    "type": "Blocked in csf",
+    "asn_number": 31898,
+    "asn_org": "ORACLE-BMC-31898",
+    "info": "LF_SSHD"
+  }
+]
+
+real    0m0.003s
+user    0m0.001s
+sys     0m0.001s
+```
+
+Timed comparison for `lfd-parser.py` vs `lfd-parser.sh` vs `lfd-parser` (`lfd-parser.go`)
+
+```
+time python3 lfd-parser.py /var/log/lfd.log-20230326.gz > parsed-python.log
+
+real    0m1.088s
+user    0m0.482s
+sys     0m0.735s
+
+time ./lfd-parser.sh /var/log/lfd.log-20230326.gz > parsed.log
+
+real    1m29.289s
+user    2m40.106s
+sys     0m12.970s
+
+time ./lfd-parser /var/log/lfd.log-20230326.gz > parsed-golang.log
+
+real    0m0.022s
+user    0m0.021s
+sys     0m0.002s
+```
+
+```
+cat parsed-golang.log | jq -r '.[] | "\(.ip) \(.asn_number) \(.asn_org) \(.info)"' | sort | uniq -c | sort -rn | head -n10
+
       1 98.159.98.85 396073 MAJESTIC-HOSTING-01 LF_DISTATTACK
       1 97.65.33.11 3549 LVLT-3549 LF_SSHD
       1 95.85.27.201 14061 DIGITALOCEAN-ASN LF_SSHD
