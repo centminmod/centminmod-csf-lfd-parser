@@ -23,12 +23,41 @@ type LogEntry struct {
   Info      string `json:"info"`
 }
 
+type StringSlice []string
+
+func (s *StringSlice) String() string {
+    return strings.Join(*s, ",")
+}
+
+func (s *StringSlice) Set(value string) error {
+    *s = append(*s, value)
+    return nil
+}
+
+type UIntSlice []uint
+
+func (u *UIntSlice) String() string {
+    return fmt.Sprintf("%v", *u)
+}
+
+func (u *UIntSlice) Set(value string) error {
+    var tmp uint
+    _, err := fmt.Sscanf(value, "%d", &tmp)
+    if err == nil {
+        *u = append(*u, tmp)
+    }
+    return err
+}
+
 func main() {
   // Set up command line flag
   logFilePath := flag.String("p", "/var/log/lfd.log", "Path to the log file")
-  ipFilter := flag.String("ip", "", "Filter by IP address")
-  asnFilter := flag.Uint("asn", 0, "Filter by ASN number")
-  infoFilter := flag.String("info", "", "Filter by Info")
+  var ipFilter StringSlice
+  flag.Var(&ipFilter, "ip", "Filter by IP address")
+  var asnFilter UIntSlice
+  flag.Var(&asnFilter, "asn", "Filter by ASN number")
+  var infoFilter StringSlice
+  flag.Var(&infoFilter, "info", "Filter by Info")
   flag.Parse()
 
   // Open the log file
@@ -65,17 +94,15 @@ func main() {
   entries := []LogEntry{}
   scanner := bufio.NewScanner(reader)
   for scanner.Scan() {
-    line := scanner.Text()
-
-    if strings.Contains(line, "Blocked in csf") || strings.Contains(line, "SSH login") {
-      entry := processLine(line, asnDB)
-
-      if (*ipFilter == "" || entry.IP == *ipFilter) &&
-        (*asnFilter == 0 || entry.ASNNumber == *asnFilter) &&
-        (*infoFilter == "" || entry.Info == *infoFilter) {
-        entries = append(entries, entry)
+      line := scanner.Text()
+      if strings.Contains(line, "Blocked in csf") || strings.Contains(line, "SSH login") {
+          entry := processLine(line, asnDB)
+          if (len(ipFilter) == 0 || containsString(ipFilter, entry.IP)) &&
+              (len(asnFilter) == 0 || containsUInt(asnFilter, entry.ASNNumber)) &&
+              (len(infoFilter) == 0 || containsString(infoFilter, entry.Info)) {
+              entries = append(entries, entry)
+          }
       }
-    }
   }
 
   if err := scanner.Err(); err != nil {
@@ -124,4 +151,22 @@ func processLine(line string, asnDB *geoip2.Reader) LogEntry {
     Info:      info,
   }
   return entry
+}
+
+func containsString(slice []string, value string) bool {
+    for _, v := range slice {
+        if v == value {
+            return true
+        }
+    }
+    return false
+}
+
+func containsUInt(slice []uint, value uint) bool {
+    for _, v := range slice {
+        if v == value {
+            return true
+        }
+    }
+    return false
 }

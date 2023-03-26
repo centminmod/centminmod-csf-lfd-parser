@@ -262,13 +262,43 @@ cat parsed-golang.log | jq -r '.[] | "\(.ip) \(.asn_number) \(.asn_org) \(.info)
 
 The Golang version `lfd-parser` also supports filtering by:
 
-* `--ip` - filter by IP Address
-* `--asn` - filter by ASN Number
-* `--info` - filter by info field i.e. `LF_SSHD`, `LF_DISTATTACK`
+* `--ip` - filter by IP Address. Passing multiple flag instances - equivalent of `OR` filter.
+* `--asn` - filter by ASN Number. Passing multiple flag instances - equivalent of `OR` filter.
+* `--info` - filter by info field i.e. `LF_SSHD`, `LF_DISTATTACK`. Passing multiple flag instances - equivalent of `OR` filter.
 
 ```
 ./lfd-parser --p /var/log/lfd.log-20230326.gz --ip 117.132.192.31
 [
+  {
+    "timestamp": "Mar 26 02:44:29",
+    "ip": "117.132.192.31",
+    "type": "Blocked in csf",
+    "asn_number": 9808,
+    "asn_org": "China Mobile Communications Group Co., Ltd.",
+    "info": "LF_SSHD"
+  },
+  {
+    "timestamp": "Mar 26 02:44:29",
+    "ip": "117.132.192.31",
+    "type": "Blocked in csf",
+    "asn_number": 9808,
+    "asn_org": "China Mobile Communications Group Co., Ltd.",
+    "info": "LF_DISTATTACK"
+  }
+]
+```
+Support multiple flag instances `--ip 117.132.192.31 --ip 2.59.62.229`
+```
+./lfd-parser --p /var/log/lfd.log-20230326.gz --ip 117.132.192.31 --ip 2.59.62.229
+[
+  {
+    "timestamp": "Mar 26 02:35:49",
+    "ip": "2.59.62.229",
+    "type": "Blocked in csf",
+    "asn_number": 63023,
+    "asn_org": "AS-GLOBALTELEHOST",
+    "info": "LF_DISTATTACK"
+  },
   {
     "timestamp": "Mar 26 02:44:29",
     "ip": "117.132.192.31",
@@ -316,6 +346,36 @@ The Golang version `lfd-parser` also supports filtering by:
   }
 ]
 
+```
+Support multiple flag instances `--asn 9808 --asn 9318`
+```
+./lfd-parser --p /var/log/lfd.log-20230326.gz --asn 9808 --asn 9318
+[
+  {
+    "timestamp": "Mar 19 06:37:34",
+    "ip": "110.11.234.8",
+    "type": "Blocked in csf",
+    "asn_number": 9318,
+    "asn_org": "SK Broadband Co Ltd",
+    "info": "LF_SSHD"
+  },
+  {
+    "timestamp": "Mar 26 02:44:29",
+    "ip": "117.132.192.31",
+    "type": "Blocked in csf",
+    "asn_number": 9808,
+    "asn_org": "China Mobile Communications Group Co., Ltd.",
+    "info": "LF_SSHD"
+  },
+  {
+    "timestamp": "Mar 26 02:44:29",
+    "ip": "117.132.192.31",
+    "type": "Blocked in csf",
+    "asn_number": 9808,
+    "asn_org": "China Mobile Communications Group Co., Ltd.",
+    "info": "LF_DISTATTACK"
+  }
+]
 ```
 ```
 ./lfd-parser --p /var/log/lfd.log-20230326.gz --info LF_DISTATTACK
