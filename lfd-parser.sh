@@ -26,6 +26,7 @@ function process_line() {
   timestamp=$(echo "$line" | jq -r '.timestamp')
   ip=$(echo "$line" | jq -r '.ip')
   type=$(echo "$line" | jq -r '.type')
+  info=$(echo "$line" | jq -r '.info')
 
   # Look up the ASN information for the IP using mmdblookup
   asn_info=$(/usr/local/nginx-dep/bin/mmdblookup --file /usr/share/GeoIP/GeoLite2-ASN.mmdb --ip "$ip" | tr -d '\n' | sed 's/<[^>]*>//g; s/^[[:space:]]*//; s/\([0-9]\)\s\+\("[a-z_]*"\)/\1, \2/')
@@ -33,7 +34,7 @@ function process_line() {
   asn_org=$(echo "$asn_info" | jq -r '.autonomous_system_organization')
 
   # Build a JSON object with the parsed data and ASN information
-  json_obj=$(echo '{}' | jq --arg timestamp "$timestamp" --arg ip "$ip" --arg type "$type" --arg asn_number "$asn_number" --arg asn_org "$asn_org" '.timestamp = $timestamp | .ip = $ip | .type = $type | .asn_number = $asn_number | .asn_org = $asn_org')
+  json_obj=$(echo '{}' | jq --arg timestamp "$timestamp" --arg ip "$ip" --arg type "$type" --arg asn_number "$asn_number" --arg asn_org "$asn_org" --arg info "$info" '.timestamp = $timestamp | .ip = $ip | .type = $type | .asn_number = $asn_number | .asn_org = $asn_org | .info = $info')
 
   echo "$json_obj"
 }
@@ -42,23 +43,26 @@ export -f process_line
 
 if [ -x "${mmdblookup_bin}" ] && [ -e "${asn_database}" ]; then
   json1=$(grep -E 'Blocked in csf|SSH login' "$logfile" | awk 'BEGIN { print "[" } {
-      month = $1;
-      date = $2;
-      time = $3;
-      timestamp = month " " date " " time;
-      ip = "";
-      type = "";
-      for (i = 1; i <= NF; i++) {
-        if ($i ~ /[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/ && ip == "") {
-          ip = $i;
-        }
-        if (match($0, /\*[^*]+\*/)) {
-          type = substr($0, RSTART+1, RLENGTH-2);
-        }
+    month = $1;
+    date = $2;
+    time = $3;
+    timestamp = month " " date " " time;
+    ip = "";
+    type = "";
+    for (i = 1; i <= NF; i++) {
+      if ($i ~ /[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/ && ip == "") {
+        ip = $i;
       }
-      if (NR > 1) printf(",\n");
-      printf("{\"timestamp\": \"%s\", \"ip\": \"%s\", \"type\": \"%s\"}", timestamp, ip, type);
-    } END { print "\n]" }')
+      if (match($0, /\*[^*]+\*/)) {
+        type = substr($0, RSTART+1, RLENGTH-2);
+      }
+      if (match($0, /\[[^]]+\]$/)) {
+        info = substr($0, RSTART+1, RLENGTH-2);
+      }
+    }
+    if (NR > 1) printf(",\n");
+    printf("{\"timestamp\": \"%s\", \"ip\": \"%s\", \"type\": \"%s\", \"info\": \"%s\"}", timestamp, ip, type, info);
+  } END { print "\n]" }')
 
   output=$(echo "$json1" | jq -c '.[]' | parallel --will-cite -j "$(nproc)" --line-buffer process_line | jq -s '.')
   # Output the final JSON array
@@ -78,8 +82,11 @@ else
       if (match($0, /\*[^*]+\*/)) {
         type = substr($0, RSTART+1, RLENGTH-2);
       }
+      if (match($0, /\[[^]]+\]$/)) {
+        info = substr($0, RSTART+1, RLENGTH-2);
+      }
     }
     if (NR > 1) printf(",\n");
-    printf("{\"timestamp\": \"%s\", \"ip\": \"%s\", \"type\": \"%s\"}", timestamp, ip, type);
+    printf("{\"timestamp\": \"%s\", \"ip\": \"%s\", \"type\": \"%s\", \"info\": \"%s\"}", timestamp, ip, type, info);
   } END { print "\n]" }'
 fi

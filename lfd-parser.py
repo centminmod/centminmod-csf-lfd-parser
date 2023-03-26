@@ -26,10 +26,14 @@ def get_asn_info(ip: str) -> dict:
     return {"asn_number": asn_number, "asn_org": asn_org}
 
 def process_line(line: str) -> dict:
-    pattern = r'\*[^*]+\*'
     timestamp = f"{line[0]} {line[1]} {line[2]}"
     ip = next((x for x in line if re.match(r'[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+', x)), '')
-    type = re.search(pattern, ' '.join(line)).group(0)[1:-1]
+    type_pattern = r'\*[^*]+\*'
+    type_match = re.search(type_pattern, ' '.join(line))
+    type = type_match.group(0)[1:-1] if type_match else ''
+    info_pattern = r'\[[^\]]+\]$'
+    info_match = re.search(info_pattern, ' '.join(line))
+    info = info_match.group(0)[1:-1] if info_match else ''
     
     if debug:
         print(f"Processing line: {line}")
@@ -39,13 +43,15 @@ def process_line(line: str) -> dict:
     
     if debug:
         print(f"ASN info: {asn_info}")
+        print(f"Info: {info}")
     
     json_obj = {
         "timestamp": timestamp,
         "ip": ip,
         "type": type,
         "asn_number": asn_info["asn_number"],
-        "asn_org": asn_info["asn_org"]
+        "asn_org": asn_info["asn_org"],
+        "info": info
     }
 
     return json_obj

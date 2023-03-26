@@ -28,7 +28,7 @@ When `NGINX_GEOIPTWOLITE='y'` is set in Centmin Mod persistent config `/etc/cent
 
 # Shell Script Version
 
-Example output from:
+Example output from command:
 
 ```
 ./lfd-parser.sh
@@ -37,27 +37,39 @@ Example output from:
 ```json
 [
   {
-    "timestamp": "Mar 19 04:20:10",
-    "ip": "187.1.178.101",
+    "timestamp": "Mar 26 02:37:08",
+    "ip": "92.205.40.41",
     "type": "Blocked in csf",
-    "asn_number": "21574",
-    "asn_org": "Century Telecom Ltda"
+    "asn_number": 21499,
+    "asn_org": "Host Europe GmbH",
+    "info": "LF_SSHD"
   },
   {
-    "timestamp": "Mar 19 04:20:10",
-    "ip": "103.232.121.81",
+    "timestamp": "Mar 26 02:44:29",
+    "ip": "117.132.192.31",
     "type": "Blocked in csf",
-    "asn_number": "56150",
-    "asn_org": "Viet Solutions Services Trading Company Limited"
+    "asn_number": 9808,
+    "asn_org": "China Mobile Communications Group Co., Ltd.",
+    "info": "LF_SSHD"
   },
   {
-    "timestamp": "Mar 25 21:18:53",
-    "ip": "61.177.173.41",
+    "timestamp": "Mar 26 02:44:29",
+    "ip": "117.132.192.31",
     "type": "Blocked in csf",
-    "asn_number": "4134",
-    "asn_org": "Chinanet"
+    "asn_number": 9808,
+    "asn_org": "China Mobile Communications Group Co., Ltd.",
+    "info": "LF_DISTATTACK"
   }
 ]
+```
+
+Corresponding `lfd.log` entries
+
+```
+egrep 'Blocked in csf|SSH login' /var/log/lfd.log | tail -3
+Mar 26 02:37:08 inc2 lfd[299494]: (sshd) Failed SSH login from 92.205.40.41 (DE/Germany/-): 5 in the last 3600 secs - *Blocked in csf* [LF_SSHD]
+Mar 26 02:44:29 inc2 lfd[299629]: (sshd) Failed SSH login from 117.132.192.31 (CN/China/-): 5 in the last 3600 secs - *Blocked in csf* [LF_SSHD]
+Mar 26 02:44:29 inc2 lfd[299630]: 117.132.192.31 (CN/China/-), 5 distributed sshd attacks on account [root] in the last 3600 secs - *Blocked in csf* [LF_DISTATTACK]
 ```
 
 ```bash
@@ -75,15 +87,15 @@ cat parsed.log | jq -r '.[] | .ip' | sort | uniq -c | sort -rn | head -n10
       2 207.249.96.147
 ```
 ```
-cat parsed.log | jq -r '.[] | "\(.ip) \(.asn_number) \(.asn_org)"' | sort | uniq -c | sort -rn | head -n10
-      2 85.152.30.138 12946 R Cable y Telecable Telecomunicaciones, S.A.U.
-      2 81.22.233.170 48146 Triple A Fibra S.L.
-      2 80.251.216.10 21887 FIBER-LOGIC
-      2 79.9.37.49 3269 Telecom Italia
-      2 67.205.174.220 14061 DIGITALOCEAN-ASN
-      2 43.128.233.179 132203 Tencent Building, Kejizhongyi Avenue
-      2 41.72.219.102 30844 Liquid Telecommunications Ltd
-      2 207.249.96.147 13579 INFOTEC CENTRO DE INVESTIGACION E INNOVACION EN TECNOLOGIAS DE LA INFORMACION Y COMUNICACION
+cat parsed.log | jq -r '.[] | "\(.ip) \(.asn_number) \(.asn_org) \(.info)"' | sort | uniq -c | sort -rn | head -n10
+      1 98.159.98.85 396073 MAJESTIC-HOSTING-01 LF_DISTATTACK
+      1 97.65.33.11 3549 LVLT-3549 LF_SSHD
+      1 95.85.27.201 14061 DIGITALOCEAN-ASN LF_SSHD
+      1 95.85.124.113 20661 State Company of Electro Communications Turkmentelecom LF_SSHD
+      1 95.232.253.35 3269 Telecom Italia LF_SSHD
+      1 95.152.60.98 12389 Rostelecom LF_DISTATTACK
+      1 95.106.174.126 12389 Rostelecom LF_SSHD
+      1 94.153.212.78 15895 Kyivstar PJSC LF_SSHD
 ```
 
 # Python Version
@@ -93,15 +105,15 @@ There's also a Python version `lfd-parser.py` for Python 3.6+ and above that wil
 ```
 time python3 lfd-parser.py > parsed-python.log
 
-real    0m0.995s
-user    0m0.454s
-sys     0m0.673s
+real    0m1.087s
+user    0m0.445s
+sys     0m0.774s
 
 time ./lfd-parser.sh > parsed.log
 
-real    1m15.311s
-user    2m16.213s
-sys     0m9.711s
+real    1m27.451s
+user    2m40.641s
+sys     0m11.483s
 ```
 
 ```
@@ -116,13 +128,13 @@ cat parsed-python.log | jq -r '.[] | .ip' | sort | uniq -c | sort -rn | head -n1
       2 207.249.96.147
 ```
 ```
-cat parsed-python.log | jq -r '.[] | "\(.ip) \(.asn_number) \(.asn_org)"' | sort | uniq -c | sort -rn | head -n10
-      2 85.152.30.138 12946 R Cable y Telecable Telecomunicaciones, S.A.U.
-      2 81.22.233.170 48146 Triple A Fibra S.L.
-      2 80.251.216.10 21887 FIBER-LOGIC
-      2 79.9.37.49 3269 Telecom Italia
-      2 67.205.174.220 14061 DIGITALOCEAN-ASN
-      2 43.128.233.179 132203 Tencent Building, Kejizhongyi Avenue
-      2 41.72.219.102 30844 Liquid Telecommunications Ltd
-      2 207.249.96.147 13579 INFOTEC CENTRO DE INVESTIGACION E INNOVACION EN TECNOLOGIAS DE LA INFORMACION Y COMUNICACION
+cat parsed-python.log | jq -r '.[] | "\(.ip) \(.asn_number) \(.asn_org) \(.info)"' | sort | uniq -c | sort -rn | head -n10
+      1 98.159.98.85 396073 MAJESTIC-HOSTING-01 LF_DISTATTACK
+      1 97.65.33.11 3549 LVLT-3549 LF_SSHD
+      1 95.85.27.201 14061 DIGITALOCEAN-ASN LF_SSHD
+      1 95.85.124.113 20661 State Company of Electro Communications Turkmentelecom LF_SSHD
+      1 95.232.253.35 3269 Telecom Italia LF_SSHD
+      1 95.152.60.98 12389 Rostelecom LF_DISTATTACK
+      1 95.106.174.126 12389 Rostelecom LF_SSHD
+      1 94.153.212.78 15895 Kyivstar PJSC LF_SSHD
 ```
