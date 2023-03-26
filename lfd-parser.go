@@ -110,13 +110,17 @@ func main() {
     os.Exit(1)
   }
 
-  jsonData, err := json.MarshalIndent(entries, "", "  ")
-  if err != nil {
-    fmt.Printf("Error encoding JSON: %s\n", err)
-    os.Exit(1)
+  if len(entries) == 0 {
+      fmt.Println("No entries found.")
+  } else {
+      jsonData, err := json.MarshalIndent(entries, "", "  ")
+      if err != nil {
+          fmt.Printf("Error encoding JSON: %s\n", err)
+          os.Exit(1)
+      }
+      fmt.Println(string(jsonData))
   }
 
-  fmt.Println(string(jsonData))
 }
 
 func processLine(line string, asnDB *geoip2.Reader) LogEntry {
