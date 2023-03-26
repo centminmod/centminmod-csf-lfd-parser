@@ -4,6 +4,7 @@ import (
   "bufio"
   "compress/gzip"
   "encoding/json"
+  "flag"
   "fmt"
   "github.com/oschwald/geoip2-golang"
   "io"
@@ -23,15 +24,13 @@ type LogEntry struct {
 }
 
 func main() {
-  // Read command line arguments
-  logfile := "/var/log/lfd.log"
-  if len(os.Args) > 1 {
-    logfile = os.Args[1]
-  }
+  // Set up command line flag
+  logFilePath := flag.String("p", "/var/log/lfd.log", "Path to the log file")
+  flag.Parse()
 
   // Open the log file
   var reader io.Reader
-  file, err := os.Open(logfile)
+  file, err := os.Open(*logFilePath)
   if err != nil {
     fmt.Printf("Error opening file: %s\n", err)
     os.Exit(1)
@@ -39,7 +38,7 @@ func main() {
   defer file.Close()
 
   // Check if the file is gzip compressed
-  if strings.HasSuffix(logfile, ".gz") {
+  if strings.HasSuffix(*logFilePath, ".gz") {
     gzreader, err := gzip.NewReader(file)
     if err != nil {
       fmt.Printf("Error opening gzip file: %s\n", err)
@@ -116,6 +115,5 @@ func processLine(line string, asnDB *geoip2.Reader) LogEntry {
     ASNOrg:    asnOrg,
     Info:      info,
   }
-
   return entry
 }
