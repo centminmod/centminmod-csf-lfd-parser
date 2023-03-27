@@ -501,6 +501,7 @@ cd /home/lfd_parser
 rustup target add x86_64-unknown-linux-musl
 cargo build --release --target x86_64-unknown-linux-musl
 cp ./target/x86_64-unknown-linux-musl/release/lfd_parser /usr/local/bin/
+strip /usr/local/bin/lfd_parser
 ```
 Now can access binary from `/usr/local/bin/lfd_parser`
 

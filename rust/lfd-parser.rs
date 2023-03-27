@@ -61,8 +61,17 @@ fn main() {
         Box::new(BufReader::new(file))
     };
 
-    let asn_db = maxminddb::Reader::open_readfile("/usr/share/GeoIP/GeoLite2-ASN.mmdb")
-        .expect("Error opening ASN database");
+    let geoip_database_path = "/usr/share/GeoIP/GeoLite2-ASN.mmdb";
+    let asn_db = match maxminddb::Reader::open_readfile(geoip_database_path) {
+        Ok(db) => db,
+        Err(_) => {
+            eprintln!(
+                "Error: Could not open the ASN database file at '{}'. Please make sure the file exists and is accessible.",
+                geoip_database_path
+            );
+            std::process::exit(1);
+        }
+    };
 
     let timestamp_re = Regex::new(r"^\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2}").unwrap();
     let ip_re = Regex::new(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}").unwrap();
