@@ -7,9 +7,12 @@ Four versions - shell script, Python, Golang and Rust versions - see [benchmarks
 * [`lfd-parser.go`](#golang-version) - requires only that MaxMind GeoLite2 ASN database at `/usr/share/GeoIP/GeoLite2-ASN.mmdb` be available as it uses `geoip2-golang` instead of `mmdblookup`. Supports [filtering](#filtering) options for `--ip`, `--asn` and `--info`.
 * [`lfd-parser.rs`](#rust-version) - requires `Cargo.toml` file. Supports [filtering](#filtering-rust) options for `-i`, `-a`, `-d` and `-n`. Including [Standalone binary builds](#alternative-standalone-rust-binary)
 
-All tree versions parses the CSF LFD `lfd.log` log for timestamp, IP address and type but additionally does an optional IP ASN number/organization lookup if it detects local MaxMind GeoLite2 ASN database being installed. The local MaxMind GeoLite 2 ASN database will be installed and available when Centmin Mod persistent config `/etc/centminmod/custom_config.inc` set with `NGINX_GEOIPTWOLITE='y'` before Nginx install or Nginx recompiles (centmin.sh menu option 4). The local MaxMind GeoLite 2 ASN database will automatically update over time.
+All four versions parses the CSF LFD `lfd.log` log for timestamp, IP address and type but additionally does an optional IP ASN number/organization lookup if it detects local MaxMind GeoLite2 ASN database being installed. The local MaxMind GeoLite 2 ASN database will be installed and available when:
 
-When `NGINX_GEOIPTWOLITE='y'` is set in Centmin Mod persistent config `/etc/centminmod/custom_config.inc`, then `mmdblookup` command will be available at `/usr/local/nginx-dep/bin/mmdblookup` and MaxMind GeoLite2 ASN database at `/usr/share/GeoIP/GeoLite2-ASN.mmdb`. The `lfd-parser.sh` script can then take advantage of having a local MaxMind GeoLite2 ASN database to query and lookup an IP addresses' ASN info.
+1. Centmin Mod persistent config `/etc/centminmod/custom_config.inc` set with `MM_LICENSE_KEY='YOUR_MAXMIND_LICENSEKEY'` and `MM_CSF_SRC='y'`. Where `YOUR_MAXMIND_LICENSEKEY` is your Maxmind GeoLite2 database API Key you sign up for at https://www.maxmind.com/en/geolite2/signup
+2. Centmin Mod persistent config `/etc/centminmod/custom_config.inc` set with `NGINX_GEOIPTWOLITE='y'` before Nginx install or Nginx recompiles (centmin.sh menu option 4). The local MaxMind GeoLite 2 ASN database will automatically update over time.
+
+When `NGINX_GEOIPTWOLITE='y'`, `MM_LICENSE_KEY='YOUR_MAXMIND_LICENSEKEY'` and `MM_CSF_SRC='y'` are set in Centmin Mod persistent config `/etc/centminmod/custom_config.inc`, then `mmdblookup` command will be available at `/usr/local/nginx-dep/bin/mmdblookup` and MaxMind GeoLite2 ASN database at `/usr/share/GeoIP/GeoLite2-ASN.mmdb`. The `lfd-parser.sh` script can then take advantage of having a local MaxMind GeoLite2 ASN database to query and lookup an IP addresses' ASN info.
 
 
 ```
