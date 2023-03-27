@@ -14,6 +14,12 @@ All four versions parses the CSF LFD `lfd.log` log for timestamp, IP address and
 
 When `NGINX_GEOIPTWOLITE='y'`, `MM_LICENSE_KEY='YOUR_MAXMIND_LICENSEKEY'` and `MM_CSF_SRC='y'` are set in Centmin Mod persistent config `/etc/centminmod/custom_config.inc`, then `mmdblookup` command will be available at `/usr/local/nginx-dep/bin/mmdblookup` and MaxMind GeoLite2 ASN database at `/usr/share/GeoIP/GeoLite2-ASN.mmdb`. The `lfd-parser.sh` script can then take advantage of having a local MaxMind GeoLite2 ASN database to query and lookup an IP addresses' ASN info.
 
+```
+ls -lah /usr/share/GeoIP/ | grep mmdb
+-rw-r--r--    1 root root 7.8M Mar 20 17:24 GeoLite2-ASN.mmdb
+-rw-r--r--    1 root root  70M Mar 20 17:25 GeoLite2-City.mmdb
+-rw-r--r--    1 root root 5.6M Mar 20 17:26 GeoLite2-Country.mmdb
+```
 
 ```
 /usr/local/nginx-dep/bin/mmdblookup --version
