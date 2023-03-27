@@ -5,7 +5,7 @@ Four versions - shell script, Python, Golang and Rust versions - see [benchmarks
 * [`lfd-parser.sh`](#shell-script-version) - requires both MaxMind GeoLite2 ASN database at `/usr/share/GeoIP/GeoLite2-ASN.mmdb` and `/usr/local/nginx-dep/bin/mmdblookup` be available.
 * [`lfd-parser.py`](#python-version) - requires both MaxMind GeoLite2 ASN database at `/usr/share/GeoIP/GeoLite2-ASN.mmdb` and `/usr/local/nginx-dep/bin/mmdblookup` be available.
 * [`lfd-parser.go`](#golang-version) - requires only that MaxMind GeoLite2 ASN database at `/usr/share/GeoIP/GeoLite2-ASN.mmdb` be available as it uses `geoip2-golang` instead of `mmdblookup`. Supports [filtering](#filtering) options for `--ip`, `--asn` and `--info`.
-* [`lfd-parser.rs`](#rust-version) - requires `Cargo.toml` file. Supports [filtering](#filtering-rust) options for `-i`, `-a` and `-n`.
+* [`lfd-parser.rs`](#rust-version) - requires `Cargo.toml` file. Supports [filtering](#filtering-rust) options for `-i`, `-a` and `-n`. Including [Standalone binary builds](#alternative-standalone-rust-binary)
 
 All tree versions parses the CSF LFD `lfd.log` log for timestamp, IP address and type but additionally does an optional IP ASN number/organization lookup if it detects local MaxMind GeoLite2 ASN database being installed. The local MaxMind GeoLite 2 ASN database will be installed and available when Centmin Mod persistent config `/etc/centminmod/custom_config.inc` set with `NGINX_GEOIPTWOLITE='y'` before Nginx install or Nginx recompiles (centmin.sh menu option 4). The local MaxMind GeoLite 2 ASN database will automatically update over time.
 
@@ -450,6 +450,29 @@ In release - this will create an optimized binary in the `target/release` direct
 cargo build --release
 ```
 
+Resulting binary `/target/release/lfd_parser`
+
+```
+ls -lah ./target/release/lfd_parser
+-rwxr-xr-x 2 root root 6.6M Mar 27 00:48 ./target/release/lfd_parser
+```
+
+Dependencies for built binary are system specific.
+
+```
+ldd ./target/release/lfd_parser
+        linux-vdso.so.1 (0x00007ffddf9f9000)
+        libc.so.6 => /lib64/libc.so.6 (0x00007f82f6af0000)
+        /lib64/ld-linux-x86-64.so.2 (0x00007f82f72c9000)
+        libpthread.so.0 => /lib64/libpthread.so.0 (0x00007f82f68d0000)
+        libgcc_s.so.1 => /lib64/libgcc_s.so.1 (0x00007f82f66b8000)
+        libdl.so.2 => /lib64/libdl.so.2 (0x00007f82f64b4000)
+```
+
+## Help Info
+
+Help info
+
 ```
 ./target/release/lfd_parser --help
 Log Analyzer 
@@ -469,6 +492,41 @@ Then to run the built binary
 
 ```
 ./target/release/lfd_parser -p /var/log/lfd.log
+```
+
+## Alternative Standalone Rust Binary
+
+```
+cd /home/lfd_parser
+rustup target add x86_64-unknown-linux-musl
+cargo build --release --target x86_64-unknown-linux-musl
+cp ./target/x86_64-unknown-linux-musl/release/lfd_parser /usr/local/bin/
+```
+Now can access binary from `/usr/local/bin/lfd_parser`
+
+```
+/usr/local/bin/lfd_parser --help
+Log Analyzer 
+
+USAGE:
+    lfd_parser [OPTIONS]
+
+OPTIONS:
+    -a <asn>...         Filter by ASN number
+    -h, --help          Print help information
+    -i <ip>...          Filter by IP address
+    -n <info>...        Filter by Info
+    -p <path>           Path to the log file [default: /var/log/lfd.log]
+```
+No dependencies
+
+```
+ldd /usr/local/bin/lfd_parser
+        statically linked
+```
+
+```
+time /usr/local/bin/lfd_parser -p /var/log/lfd.log-20230326.gz
 ```
 
 ## Filtering Rust
