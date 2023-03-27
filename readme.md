@@ -5,7 +5,7 @@ Four versions - shell script, Python, Golang and Rust versions - see [benchmarks
 * [`lfd-parser.sh`](#shell-script-version) - requires both MaxMind GeoLite2 ASN database at `/usr/share/GeoIP/GeoLite2-ASN.mmdb` and `/usr/local/nginx-dep/bin/mmdblookup` be available.
 * [`lfd-parser.py`](#python-version) - requires both MaxMind GeoLite2 ASN database at `/usr/share/GeoIP/GeoLite2-ASN.mmdb` and `/usr/local/nginx-dep/bin/mmdblookup` be available.
 * [`lfd-parser.go`](#golang-version) - requires only that MaxMind GeoLite2 ASN database at `/usr/share/GeoIP/GeoLite2-ASN.mmdb` be available as it uses `geoip2-golang` instead of `mmdblookup`. Supports [filtering](#filtering) options for `--ip`, `--asn` and `--info`.
-* [`lfd-parser.rs`](#rust-version) - requires `Cargo.toml` file. Supports [filtering](#filtering-rust) options for `-i`, `-a` and `-n`. Including [Standalone binary builds](#alternative-standalone-rust-binary)
+* [`lfd-parser.rs`](#rust-version) - requires `Cargo.toml` file. Supports [filtering](#filtering-rust) options for `-i`, `-a`, `-d` and `-n`. Including [Standalone binary builds](#alternative-standalone-rust-binary)
 
 All tree versions parses the CSF LFD `lfd.log` log for timestamp, IP address and type but additionally does an optional IP ASN number/organization lookup if it detects local MaxMind GeoLite2 ASN database being installed. The local MaxMind GeoLite 2 ASN database will be installed and available when Centmin Mod persistent config `/etc/centminmod/custom_config.inc` set with `NGINX_GEOIPTWOLITE='y'` before Nginx install or Nginx recompiles (centmin.sh menu option 4). The local MaxMind GeoLite 2 ASN database will automatically update over time.
 
