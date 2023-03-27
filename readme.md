@@ -436,8 +436,6 @@ serde_derive = "1.0.130"
 Replace the contents of the `src/main.rs` file with the Rust code below found in `lfd-parsers.rs`:
 
 
-```
-
 Build and run Cargo project 
 
 In debug / development mode
