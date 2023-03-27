@@ -1,6 +1,6 @@
 Centmin Mod CSF LFD Log Parser
 
-Three versions - shell script, Python and Golang versions:
+Four versions - shell script, Python, Golang and Rust versions:
 
 * [`lfd-parser.sh`](#shell-script-version) - requires both MaxMind GeoLite2 ASN database at `/usr/share/GeoIP/GeoLite2-ASN.mmdb` and `/usr/local/nginx-dep/bin/mmdblookup` be available.
 * [`lfd-parser.py`](#python-version) - requires both MaxMind GeoLite2 ASN database at `/usr/share/GeoIP/GeoLite2-ASN.mmdb` and `/usr/local/nginx-dep/bin/mmdblookup` be available.
@@ -397,4 +397,275 @@ Support multiple flag instances `--asn 9808 --asn 9318`
     "info": "LF_DISTATTACK"
   }
 ]
+```
+
+# Rust Version
+
+```
+mkdir -p /home/rusttmp
+chmod 1777 /home/rusttmp
+export TMPDIR=/home/rusttmp
+# install Rust via rustup can be uninstalled via 
+# rustup self uninstall
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source $HOME/.cargo/env
+cd /home
+cargo new lfd_parser
+cd lfd_parser
+```
+
+In directory `lfd_parser` create or edit existing `Cargo.toml` file with:
+
+```
+[package]
+name = "lfd_parser"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+maxminddb = "0.17.0"
+regex = "1.5.4"
+serde = "1.0.130"
+serde_json = "1.0.94"
+clap = "3.0.0-beta.5"
+flate2 = "1.0.21"
+serde_derive = "1.0.130"
+```
+
+Replace the contents of the `src/main.rs` file with the Rust code below found in `lfd-parsers.rs`:
+
+
+```
+
+Build and run Cargo project 
+
+In debug / development mode
+
+```
+cargo run
+```
+
+In release - this will create an optimized binary in the `target/release` directory like `./target/release/lfd_parser`.
+
+```
+cargo build --release
+```
+
+```
+./target/release/lfd_parser --help
+Log Analyzer 
+
+USAGE:
+    lfd_parser [OPTIONS]
+
+OPTIONS:
+    -a <asn>...         Filter by ASN number
+    -h, --help          Print help information
+    -i <ip>...          Filter by IP address
+    -n <info>...        Filter by Info
+    -p <path>           Path to the log file [default: /var/log/lfd.log]
+```
+
+Then to run the built binary
+
+```
+./target/release/lfd_parser -p /var/log/lfd.log
+```
+Example commands
+```
+./target/release/lfd_parser -p /var/log/lfd.log-20230326.gz -i 117.132.192.31
+./target/release/lfd_parser -p /var/log/lfd.log-20230326.gz -i 117.132.192.31 -i 2.59.62.229
+./target/release/lfd_parser -p /var/log/lfd.log-20230326.gz -a 9808
+./target/release/lfd_parser -p /var/log/lfd.log-20230326.gz -a 9808 -a 9318
+./target/release/lfd_parser -p /var/log/lfd.log-20230326.gz -n LF_DISTATTACK
+```
+Example outputs
+```
+./target/release/lfd_parser -p /var/log/lfd.log-20230326.gz -i 117.132.192.31
+[
+  {
+    "timestamp": "Mar 26 02:44:29",
+    "ip": "117.132.192.31",
+    "type": "Blocked in csf",
+    "asn_number": 9808,
+    "asn_org": "China Mobile Communications Group Co., Ltd.",
+    "info": "LF_SSHD"
+  },
+  {
+    "timestamp": "Mar 26 02:44:29",
+    "ip": "117.132.192.31",
+    "type": "Blocked in csf",
+    "asn_number": 9808,
+    "asn_org": "China Mobile Communications Group Co., Ltd.",
+    "info": "LF_DISTATTACK"
+  }
+]
+```
+```
+./target/release/lfd_parser -p /var/log/lfd.log-20230326.gz -i 117.132.192.31 -i 2.59.62.229
+[
+  {
+    "timestamp": "Mar 26 02:35:49",
+    "ip": "2.59.62.229",
+    "type": "Blocked in csf",
+    "asn_number": 63023,
+    "asn_org": "AS-GLOBALTELEHOST",
+    "info": "LF_DISTATTACK"
+  },
+  {
+    "timestamp": "Mar 26 02:44:29",
+    "ip": "117.132.192.31",
+    "type": "Blocked in csf",
+    "asn_number": 9808,
+    "asn_org": "China Mobile Communications Group Co., Ltd.",
+    "info": "LF_SSHD"
+  },
+  {
+    "timestamp": "Mar 26 02:44:29",
+    "ip": "117.132.192.31",
+    "type": "Blocked in csf",
+    "asn_number": 9808,
+    "asn_org": "China Mobile Communications Group Co., Ltd.",
+    "info": "LF_DISTATTACK"
+  }
+]
+```
+```
+./target/release/lfd_parser -p /var/log/lfd.log-20230326.gz -a 9808
+[
+  {
+    "timestamp": "Mar 22 04:11:58",
+    "ip": "120.210.206.146",
+    "type": "Blocked in csf",
+    "asn_number": 9808,
+    "asn_org": "China Mobile Communications Group Co., Ltd.",
+    "info": "LF_DISTATTACK"
+  },
+  {
+    "timestamp": "Mar 26 02:44:29",
+    "ip": "117.132.192.31",
+    "type": "Blocked in csf",
+    "asn_number": 9808,
+    "asn_org": "China Mobile Communications Group Co., Ltd.",
+    "info": "LF_SSHD"
+  },
+  {
+    "timestamp": "Mar 26 02:44:29",
+    "ip": "117.132.192.31",
+    "type": "Blocked in csf",
+    "asn_number": 9808,
+    "asn_org": "China Mobile Communications Group Co., Ltd.",
+    "info": "LF_DISTATTACK"
+  }
+]
+```
+```
+./target/release/lfd_parser -p /var/log/lfd.log-20230326.gz -a 9808 -a 9318
+[
+  {
+    "timestamp": "Mar 19 06:37:34",
+    "ip": "110.11.234.8",
+    "type": "Blocked in csf",
+    "asn_number": 9318,
+    "asn_org": "SK Broadband Co Ltd",
+    "info": "LF_SSHD"
+  },
+  {
+    "timestamp": "Mar 26 02:44:29",
+    "ip": "117.132.192.31",
+    "type": "Blocked in csf",
+    "asn_number": 9808,
+    "asn_org": "China Mobile Communications Group Co., Ltd.",
+    "info": "LF_SSHD"
+  },
+  {
+    "timestamp": "Mar 26 02:44:29",
+    "ip": "117.132.192.31",
+    "type": "Blocked in csf",
+    "asn_number": 9808,
+    "asn_org": "China Mobile Communications Group Co., Ltd.",
+    "info": "LF_DISTATTACK"
+  }
+]
+```
+```
+./target/release/lfd_parser -p /var/log/lfd.log-20230326.gz -n LF_DISTATTACK
+
+[
+  {
+    "timestamp": "Mar 26 02:35:49",
+    "ip": "2.59.62.229",
+    "type": "Blocked in csf",
+    "asn_number": 63023,
+    "asn_org": "AS-GLOBALTELEHOST",
+    "info": "LF_DISTATTACK"
+  },
+  {
+    "timestamp": "Mar 26 02:44:29",
+    "ip": "117.132.192.31",
+    "type": "Blocked in csf",
+    "asn_number": 9808,
+    "asn_org": "China Mobile Communications Group Co., Ltd.",
+    "info": "LF_DISTATTACK"
+  }
+]
+```
+
+## Benchmarks
+
+Parsing CSF Firewall's LFD log file at `/var/log/lfd.log-20230326.gz`
+
+```
+ls -lah /var/log/lfd.log*
+-rw------- 1 root root 28K Mar 27 00:53 /var/log/lfd.log
+-rw------- 1 root root 24K Mar 26 02:44 /var/log/lfd.log-20230326.gz
+```
+
+Timed comparison for `lfd-parser.py` vs `lfd-parser.sh` vs `lfd-parser` (`lfd-parser.go`) vs `/target/release/lfd_parser` (rust)
+
+```
+time python3 lfd-parser.py /var/log/lfd.log-20230326.gz > parsed-python.log
+
+real    0m1.003s
+user    0m0.495s
+sys     0m0.647s
+
+time ./lfd-parser.sh /var/log/lfd.log-20230326.gz > parsed.log
+
+real    1m26.528s
+user    2m39.696s
+sys     0m10.917s
+
+time ./lfd-parser --p /var/log/lfd.log-20230326.gz > parsed-golang.log
+
+real    0m0.023s
+user    0m0.021s
+sys     0m0.004s
+
+time ./target/release/lfd_parser -p /var/log/lfd.log-20230326.gz > parsed-rust.log
+
+real    0m0.009s
+user    0m0.004s
+sys     0m0.005s
+```
+
+| Language | Script/Executable                | Speed-up Factor | Real Time  | User Time  | System Time |
+|----------|----------------------------------|-----------------|------------|------------|-------------|
+| Python   | `python3 lfd-parser.py`          | 86.29x          | 0m1.003s   | 0m0.495s   | 0m0.647s    |
+| Shell    | `./lfd-parser.sh`                | 1.00x           | 1m26.528s  | 2m39.696s  | 0m10.917s   |
+| Golang   | `./lfd-parser`                   | 3762.09x        | 0m0.023s   | 0m0.021s   | 0m0.004s    |
+| Rust     | `./target/release/lfd_parser`    | 9614.22x        | 0m0.009s   | 0m0.004s   | 0m0.005s    |
+
+Querying the `parsed-rust.log`
+
+```
+cat parsed-rust.log | jq -r '.[] | "\(.ip) \(.asn_number) \(.asn_org) \(.info)"' | sort | uniq -c | sort -rn | head -n10
+      1 98.159.98.85 396073 MAJESTIC-HOSTING-01 LF_DISTATTACK
+      1 97.65.33.11 3549 LVLT-3549 LF_SSHD
+      1 95.85.27.201 14061 DIGITALOCEAN-ASN LF_SSHD
+      1 95.85.124.113 20661 State Company of Electro Communications Turkmentelecom LF_SSHD
+      1 95.232.253.35 3269 Telecom Italia LF_SSHD
+      1 95.152.60.98 12389 Rostelecom LF_DISTATTACK
+      1 95.106.174.126 12389 Rostelecom LF_SSHD
+      1 94.153.212.78 15895 Kyivstar PJSC LF_SSHD
 ```
