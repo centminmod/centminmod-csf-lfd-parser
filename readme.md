@@ -482,6 +482,7 @@ USAGE:
 
 OPTIONS:
     -a <asn>...         Filter by ASN number
+    -d <db_path>        Path to the GeoLite2 database [default: /usr/share/GeoIP/GeoLite2-ASN.mmdb]
     -h, --help          Print help information
     -i <ip>...          Filter by IP address
     -n <info>...        Filter by Info
@@ -514,6 +515,7 @@ USAGE:
 
 OPTIONS:
     -a <asn>...         Filter by ASN number
+    -d <db_path>        Path to the GeoLite2 database [default: /usr/share/GeoIP/GeoLite2-ASN.mmdb]
     -h, --help          Print help information
     -i <ip>...          Filter by IP address
     -n <info>...        Filter by Info

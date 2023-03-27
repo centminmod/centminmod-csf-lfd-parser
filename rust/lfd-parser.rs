@@ -42,6 +42,11 @@ fn main() {
             .help("Filter by Info")
             .takes_value(true)
             .multiple(true))
+        .arg(Arg::with_name("db_path")
+            .short('d') // Use single quotes for characters
+            .default_value("/usr/share/GeoIP/GeoLite2-ASN.mmdb")
+            .help("Path to the GeoLite2 database")
+            .takes_value(true))
         .get_matches();
 
     let log_file_path = matches.value_of("path").unwrap();
@@ -61,7 +66,7 @@ fn main() {
         Box::new(BufReader::new(file))
     };
 
-    let geoip_database_path = "/usr/share/GeoIP/GeoLite2-ASN.mmdb";
+    let geoip_database_path = matches.value_of("db_path").unwrap();
     let asn_db = match maxminddb::Reader::open_readfile(geoip_database_path) {
         Ok(db) => db,
         Err(_) => {
