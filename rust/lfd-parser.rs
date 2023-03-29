@@ -82,6 +82,8 @@ fn main() {
     let ip_re = Regex::new(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}").unwrap();
     let type_re = Regex::new(r"\*[^*]+\*").unwrap();
     let info_re = Regex::new(r"\[[^\]]+\]$").unwrap();
+    // Add the new regex for matching the attacker IP address in cluster mode.
+    let attacker_ip_re = Regex::new(r"DENY\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})").unwrap();
 
     let mut entries: Vec<LogEntry> = Vec::new();
 
@@ -90,7 +92,20 @@ fn main() {
 
         if line.contains("Blocked in csf") || line.contains("SSH login") {
             let timestamp = timestamp_re.find(&line).map(|m| m.as_str()).unwrap_or("").to_string();
-            let ip = ip_re.find(&line).map(|m| m.as_str()).unwrap_or("").to_string();
+            // Modify the `ip` variable assignment.
+            let ip = if line.contains("Cluster member") {
+                attacker_ip_re
+                    .find(&line)
+                    .map(|m| m.as_str().trim_start_matches("DENY").trim())
+                    .unwrap_or("")
+                    .to_string()
+            } else {
+                ip_re
+                    .find(&line)
+                    .map(|m| m.as_str())
+                    .unwrap_or("")
+                    .to_string()
+            };
             let entry_type = type_re.find(&line).map(|m| m.as_str()).unwrap_or("").trim_matches('*').to_string();
             let info = info_re.find(&line).map(|m| m.as_str()).unwrap_or("").trim_matches('[').trim_matches(']').to_string();
 

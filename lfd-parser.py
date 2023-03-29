@@ -27,13 +27,15 @@ def get_asn_info(ip: str) -> dict:
 
 def process_line(line: str) -> dict:
     timestamp = f"{line[0]} {line[1]} {line[2]}"
-    ip = next((x for x in line if re.match(r'[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+', x)), '')
     type_pattern = r'\*[^*]+\*'
     type_match = re.search(type_pattern, ' '.join(line))
     type = type_match.group(0)[1:-1] if type_match else ''
     info_pattern = r'\[[^\]]+\]$'
+    attacker_ip_pattern = r'DENY\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'
     info_match = re.search(info_pattern, ' '.join(line))
     info = info_match.group(0)[1:-1] if info_match else ''
+    ip_match = re.search(attacker_ip_pattern, ' '.join(line)) if "Cluster member" in ' '.join(line) else None
+    ip = ip_match.group(1) if ip_match else next((x for x in line if re.match(r'[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+', x)), '')
     
     if debug:
         print(f"Processing line: {line}")

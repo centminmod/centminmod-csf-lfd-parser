@@ -128,9 +128,18 @@ func processLine(line string, asnDB *geoip2.Reader) LogEntry {
   ipRe := regexp.MustCompile(`\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}`)
   typeRe := regexp.MustCompile(`\*[^*]+\*`)
   infoRe := regexp.MustCompile(`\[[^\]]+\]$`)
+  attackerIPRe := regexp.MustCompile(`DENY\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})`)
 
   timestamp := timestampRe.FindString(line)
-  ip := ipRe.FindString(line)
+  ip := ""
+  if strings.Contains(line, "Cluster member") {
+      ipMatch := attackerIPRe.FindStringSubmatch(line)
+      if len(ipMatch) > 1 {
+          ip = ipMatch[1]
+      }
+  } else {
+      ip = ipRe.FindString(line)
+  }
   entryType := strings.Trim(typeRe.FindString(line), "*")
   info := strings.Trim(infoRe.FindString(line), "[]")
 
