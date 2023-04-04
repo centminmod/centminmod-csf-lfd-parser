@@ -1,3 +1,5 @@
+![GitHub last commit](https://img.shields.io/github/last-commit/centminmod/centminmod-csf-lfd-parser) ![GitHub contributors](https://img.shields.io/github/contributors/centminmod/centminmod-csf-lfd-parser) ![GitHub Repo stars](https://img.shields.io/github/stars/centminmod/centminmod-csf-lfd-parser) ![GitHub watchers](https://img.shields.io/github/watchers/centminmod/centminmod-csf-lfd-parser) ![GitHub Sponsors](https://img.shields.io/github/sponsors/centminmod) ![GitHub top language](https://img.shields.io/github/languages/top/centminmod/centminmod-csf-lfd-parser) ![GitHub language count](https://img.shields.io/github/languages/count/centminmod/centminmod-csf-lfd-parser)
+
 Centmin Mod CSF LFD Log Parser
 
 Four versions - shell script, Python, Golang and Rust versions - see [benchmarks](#benchmarks).
