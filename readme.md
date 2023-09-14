@@ -413,6 +413,8 @@ Support multiple flag instances `--asn 9808 --asn 9318`
 
 # Rust Version
 
+You can download a standalone Rust binary for `lfd_parser` on releases page https://github.com/centminmod/centminmod-csf-lfd-parser/releases.
+
 ```
 mkdir -p /home/rusttmp
 chmod 1777 /home/rusttmp
@@ -507,6 +509,10 @@ Then to run the built binary
 ```
 
 ## Alternative Standalone Rust Binary
+
+You can download a standalone Rust binary for `lfd_parser` on releases page https://github.com/centminmod/centminmod-csf-lfd-parser/releases.
+
+### How to build standalone Rust binary
 
 ```
 cd /home/lfd_parser
