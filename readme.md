@@ -431,17 +431,17 @@ In directory `lfd_parser` create or edit existing `Cargo.toml` file with:
 ```
 [package]
 name = "lfd_parser"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 [dependencies]
-maxminddb = "0.17.0"
-regex = "1.5.4"
-serde = "1.0.130"
-serde_json = "1.0.94"
-clap = "3.0.0-beta.5"
-flate2 = "1.0.21"
-serde_derive = "1.0.130"
+maxminddb = "0.21.0"
+regex = "1.5.5"
+serde = "1.0.136"
+serde_json = "1.0.64"
+clap = "3.0.14"
+flate2 = "1.0.22"
+serde_derive = "1.0.136"
 ```
 
 Replace the contents of the `src/main.rs` file with the Rust code below found in `lfd-parsers.rs`:

@@ -1,7 +1,6 @@
 use std::io::{BufRead, BufReader};
 use std::fs::File;
 use std::net::IpAddr;
-use std::path::Path;
 use std::str::FromStr;
 
 use clap::{Arg, App, Values};
